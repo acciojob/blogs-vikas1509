@@ -1,11 +1,14 @@
 package com.driver.models;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @Entity
-public class Blog {
+@Table(name = "blogs")
+public class Blog{
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -14,7 +17,18 @@ public class Blog {
 
     private String content;
 
-    private Date pubdate;
+    private Date pubDate;
+
+    @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL)
+    private List<Image> imageList = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn
+    private User user;
+
+    public Blog() {
+
+    }
 
     public int getId() {
         return id;
@@ -41,7 +55,11 @@ public class Blog {
     }
 
     public Date getPubDate() {
-        return pubdate;
+        return pubDate;
+    }
+
+    public void setPubDate(Date pubDate) {
+        this.pubDate = pubDate;
     }
 
     public List<Image> getImageList() {
@@ -52,20 +70,6 @@ public class Blog {
         this.imageList = imageList;
     }
 
-    public void setPubDate(Date pubdate
-    ) {
-        this.pubdate = pubdate;
-    }
-
-    public Blog() {
-    }
-
-    public Blog( String title, String content, Date pubdate) {
-        this.title = title;
-        this.content = content;
-        this.pubdate = pubdate;
-    }
-
     public User getUser() {
         return user;
     }
@@ -73,11 +77,4 @@ public class Blog {
     public void setUser(User user) {
         this.user = user;
     }
-
-    @ManyToOne
-    @JoinColumn
-    private User user;
-
-    @OneToMany(mappedBy = "blog",cascade = CascadeType.ALL)
-    private List<Image> imageList;
 }

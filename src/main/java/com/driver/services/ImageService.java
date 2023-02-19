@@ -1,55 +1,58 @@
 package com.driver.services;
 
 import com.driver.models.*;
-import com.driver.repositories.BlogRepository;
-import com.driver.repositories.ImageRepository;
+import com.driver.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class ImageService {
+
+    @Autowired
+    BlogRepository blogRepository2;
     @Autowired
     ImageRepository imageRepository2;
-    @Autowired
-    private BlogRepository blogRepository;
 
-    public Image createAndReturn(Blog blog, String description, String dimensions){
-        //create an image based on given parameters and add it to the imageList of given blog
-        Image image=new Image(description,dimensions);
+    public Image addImage(Integer blogId, String description, String dimensions){
+        //add an image to the blog
+        Blog blog=blogRepository2.findById(blogId).get();
+
+        Image image=new Image();
+        image.setDescription(description);
+        image.setDimensions(dimensions);
         image.setBlog(blog);
-        List<Image> res=blog.getImageList();
-        if(res==null){
-            res=new ArrayList<>();
-        }
-        res.add(image);
-        blog.setImageList(res);
-        imageRepository2.save(image);
-        blogRepository.save(blog);
+
+        blog.getImageList().add(image);
+
+        blogRepository2.save(blog); //cascade saved image too
+
         return image;
-
     }
 
-    public void deleteImage(Image image){
-        imageRepository2.delete(image);
+    public void deleteImage(Integer id){
+        imageRepository2.deleteById(id);
     }
 
-    public Image findById(int id) {
-        return imageRepository2.findById(id).get();
-    }
-
-    public int countImagesInScreen(Image image, String screenDimensions) {
+    public int countImagesInScreen(Integer id, String screenDimensions) {
         //Find the number of images of given dimensions that can fit in a screen having `screenDimensions`
-        //In case the image is null, return 0
-        if (screenDimensions.split("X").length == 2 || Objects.nonNull(image)) {
-            Integer maxLength = Integer.parseInt(screenDimensions.split("X")[0]) / Integer.parseInt(image.getDimensions().split("X")[0]) ;
-            Integer maxBreadth = Integer.parseInt(screenDimensions.split("X")[1]) / Integer.parseInt(image.getDimensions().split("X")[1]);
-            return maxLength * maxBreadth;
-        }
-        return 0;
+        int count=0;
+        Image image = imageRepository2.findById(id).get();
+       // Image image=imageRepository2.findById(id).get();
 
+        if(image==null)return 0;
+
+
+        String imageDimension[]=image.getDimensions().split("X");
+        int imageLength=Integer.parseInt(imageDimension[0]),
+                imageBreadth=Integer.parseInt(imageDimension[1]);
+
+        String screenDimension[]=screenDimensions.split("X");
+        int screenLength=Integer.parseInt(screenDimension[0]),
+                screenBreadth=Integer.parseInt(screenDimension[1]);
+
+        count=(screenLength/imageLength)*(screenBreadth/imageBreadth);
+        return count;
     }
 }
